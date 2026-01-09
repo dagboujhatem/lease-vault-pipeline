@@ -191,3 +191,16 @@ Cas d’usage typiques du preStop
 | Message broker        | Ack / drain       |
 | Locks distribués      | Release           |
 | Side effects externes | Cleanup           |
+
+
+Aller plus loin 
+
+| Mécanisme     | Rôle           | Moment      |
+| ------------- | -------------- | ----------- |
+| initContainer | Préparer       | Avant start |
+| postStart     | Init légère    | Après start |
+| readiness     | Traffic        | Continu     |
+| liveness      | Crash          | Continu     |
+| startup       | Démarrage lent | Boot        |
+| preStop       | Cleanup        | Avant stop  |
+| SIGTERM       | Shutdown       | Stop        |
