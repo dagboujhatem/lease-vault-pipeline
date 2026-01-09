@@ -152,3 +152,42 @@ Avantages :
 - revoke automatique
 - aucun script
 - gestion native des leases
+
+## 6. Rappel 
+
+Ce que fait Kubernetes lors d’un arrêt de Pod
+
+```shell 
+kubectl delete pod
+│
+├── preStop hook (si défini)   ← ICI
+│
+├── SIGTERM envoyé au container
+│
+├── attente (terminationGracePeriodSeconds)
+│
+└── SIGKILL (forcé)
+```
+
+#### Sans preStop
+
+- token Vault toujours valide
+- leases dynamiques toujours actifs
+- orphans
+- fuite de credentials (DB, cloud, etc.)
+
+#### Avec preStop
+
+- révocation explicite des leases
+- cleanup immédiat
+- sécurité maîtrisée
+
+Cas d’usage typiques du preStop
+
+| Cas                   | Pourquoi preStop  |
+| --------------------- | ----------------- |
+| Vault sans agent      | Révoquer leases   |
+| DB connection pool    | Fermer proprement |
+| Message broker        | Ack / drain       |
+| Locks distribués      | Release           |
+| Side effects externes | Cleanup           |
