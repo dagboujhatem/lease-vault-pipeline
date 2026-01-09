@@ -1,0 +1,114 @@
+{
+    "info": {
+      "name": "Vault - Leases Management",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": "Gestion complète des leases Vault (list, lookup, revoke, capabilities)"
+    },
+    "variable": [
+      { "key": "vault_addr", "value": "http://127.0.0.1:8200" },
+      { "key": "vault_token", "value": "s.xxxxx" },
+      { "key": "vault_namespace", "value": "" },
+      { "key": "lease_path", "value": "auth/token/create" },
+      { "key": "lease_id", "value": "s.xxxxx" }
+    ],
+    "event": [],
+    "item": [
+      {
+        "name": "Token - Lookup Self",
+        "request": {
+          "method": "GET",
+          "header": [
+            { "key": "X-Vault-Token", "value": "{{vault_token}}" },
+            { "key": "X-Vault-Namespace", "value": "{{vault_namespace}}" }
+          ],
+          "url": {
+            "raw": "{{vault_addr}}/v1/auth/token/lookup-self",
+            "host": ["{{vault_addr}}"],
+            "path": ["v1", "auth", "token", "lookup-self"]
+          }
+        }
+      },
+      {
+        "name": "Capabilities - Check",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "X-Vault-Token", "value": "{{vault_token}}" },
+            { "key": "X-Vault-Namespace", "value": "{{vault_namespace}}" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"paths\": [\"sys/leases/subkeys/\"]\n}"
+          },
+          "url": {
+            "raw": "{{vault_addr}}/v1/sys/capabilities",
+            "host": ["{{vault_addr}}"],
+            "path": ["v1", "sys", "capabilities"]
+          }
+        }
+      },
+      {
+        "name": "Leases - List Root (LIST)",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "X-Vault-Token", "value": "{{vault_token}}" },
+            { "key": "X-Vault-Request", "value": "true" },
+            { "key": "X-Vault-Namespace", "value": "{{vault_namespace}}" }
+          ],
+          "url": {
+            "raw": "{{vault_addr}}/v1/sys/leases/subkeys/",
+            "host": ["{{vault_addr}}"],
+            "path": ["v1", "sys", "leases", "subkeys"]
+          }
+        }
+      },
+      {
+        "name": "Leases - List Subpath",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "X-Vault-Token", "value": "{{vault_token}}" },
+            { "key": "X-Vault-Request", "value": "true" },
+            { "key": "X-Vault-Namespace", "value": "{{vault_namespace}}" }
+          ],
+          "url": {
+            "raw": "{{vault_addr}}/v1/sys/leases/subkeys/{{lease_path}}/",
+            "host": ["{{vault_addr}}"],
+            "path": ["v1", "sys", "leases", "subkeys", "{{lease_path}}"]
+          }
+        }
+      },
+      {
+        "name": "Lease - Lookup",
+        "request": {
+          "method": "GET",
+          "header": [
+            { "key": "X-Vault-Token", "value": "{{vault_token}}" },
+            { "key": "X-Vault-Namespace", "value": "{{vault_namespace}}" }
+          ],
+          "url": {
+            "raw": "{{vault_addr}}/v1/sys/leases/lookup/{{lease_path}}/{{lease_id}}",
+            "host": ["{{vault_addr}}"],
+            "path": ["v1", "sys", "leases", "lookup", "{{lease_path}}", "{{lease_id}}"]
+          }
+        }
+      },
+      {
+        "name": "Lease - Revoke",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "X-Vault-Token", "value": "{{vault_token}}" },
+            { "key": "X-Vault-Namespace", "value": "{{vault_namespace}}" }
+          ],
+          "url": {
+            "raw": "{{vault_addr}}/v1/sys/leases/revoke/{{lease_path}}/{{lease_id}}",
+            "host": ["{{vault_addr}}"],
+            "path": ["v1", "sys", "leases", "revoke", "{{lease_path}}", "{{lease_id}}"]
+          }
+        }
+      }
+    ]
+  }
+  

@@ -1,0 +1,139 @@
+{
+    "info": {
+      "name": "Vault v1 - Full Static API",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": "Collection Postman listant toutes les APIs Vault v1 statiques + un endpoint générique"
+    },
+    "variable": [
+      { "key": "vault_addr", "value": "http://127.0.0.1:8200" },
+      { "key": "vault_token", "value": "s.xxxxx" },
+      { "key": "vault_namespace", "value": "" }
+    ],
+    "item": [
+      {
+        "name": "Auth",
+        "item": [
+          {
+            "name": "Token - Lookup Self",
+            "request": {
+              "method": "GET",
+              "url": "{{vault_addr}}/v1/auth/token/lookup-self"
+            }
+          },
+          {
+            "name": "Token - Lookup",
+            "request": {
+              "method": "POST",
+              "url": "{{vault_addr}}/v1/auth/token/lookup"
+            }
+          },
+          {
+            "name": "Token - Revoke",
+            "request": {
+              "method": "POST",
+              "url": "{{vault_addr}}/v1/auth/token/revoke"
+            }
+          },
+          {
+            "name": "Token - Revoke Self",
+            "request": {
+              "method": "POST",
+              "url": "{{vault_addr}}/v1/auth/token/revoke-self"
+            }
+          },
+          {
+            "name": "Kubernetes - Login",
+            "request": {
+              "method": "POST",
+              "url": "{{vault_addr}}/v1/auth/kubernetes/login"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Sys",
+        "item": [
+          {
+            "name": "Health",
+            "request": {
+              "method": "GET",
+              "url": "{{vault_addr}}/v1/sys/health"
+            }
+          },
+          {
+            "name": "Seal Status",
+            "request": {
+              "method": "GET",
+              "url": "{{vault_addr}}/v1/sys/seal-status"
+            }
+          },
+          {
+            "name": "Mounts - List",
+            "request": {
+              "method": "GET",
+              "url": "{{vault_addr}}/v1/sys/mounts"
+            }
+          },
+          {
+            "name": "Auth Methods - List",
+            "request": {
+              "method": "GET",
+              "url": "{{vault_addr}}/v1/sys/auth"
+            }
+          },
+          {
+            "name": "Policies - List",
+            "request": {
+              "method": "GET",
+              "url": "{{vault_addr}}/v1/sys/policies/acl"
+            }
+          },
+          {
+            "name": "Capabilities",
+            "request": {
+              "method": "POST",
+              "url": "{{vault_addr}}/v1/sys/capabilities"
+            }
+          },
+          {
+            "name": "Leases - Subkeys",
+            "request": {
+              "method": "POST",
+              "url": "{{vault_addr}}/v1/sys/leases/subkeys/"
+            }
+          },
+          {
+            "name": "Lease - Lookup",
+            "request": {
+              "method": "GET",
+              "url": "{{vault_addr}}/v1/sys/leases/lookup/{{lease_path}}/{{lease_id}}"
+            }
+          },
+          {
+            "name": "Lease - Revoke",
+            "request": {
+              "method": "POST",
+              "url": "{{vault_addr}}/v1/sys/leases/revoke/{{lease_path}}/{{lease_id}}"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Generic",
+        "item": [
+          {
+            "name": "Generic v1 API",
+            "request": {
+              "method": "{{vault_method}}",
+              "url": "{{vault_addr}}/v1/{{vault_path}}",
+              "body": {
+                "mode": "raw",
+                "raw": "{{vault_body}}"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+  

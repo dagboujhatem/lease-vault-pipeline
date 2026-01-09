@@ -1,0 +1,39 @@
+{
+    "info": {
+      "name": "Vault v1 - Full API (Generic)",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": "Collection générique couvrant 100% des APIs Vault v1 via paramètres dynamiques"
+    },
+    "variable": [
+      { "key": "vault_addr", "value": "http://127.0.0.1:8200" },
+      { "key": "vault_namespace", "value": "" },
+      { "key": "vault_token", "value": "s.xxxxx" },
+      { "key": "vault_path", "value": "sys/health" },
+      { "key": "vault_method", "value": "GET" },
+      { "key": "vault_body", "value": "{}" }
+    ],
+    "item": [
+      {
+        "name": "🔍 Vault - Generic v1 API",
+        "request": {
+          "method": "{{vault_method}}",
+          "header": [
+            { "key": "X-Vault-Token", "value": "{{vault_token}}" },
+            { "key": "X-Vault-Namespace", "value": "{{vault_namespace}}" },
+            { "key": "X-Vault-Request", "value": "true" },
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{{vault_body}}"
+          },
+          "url": {
+            "raw": "{{vault_addr}}/v1/{{vault_path}}",
+            "host": ["{{vault_addr}}"],
+            "path": ["v1", "{{vault_path}}"]
+          }
+        }
+      }
+    ]
+  }
+  

@@ -1,0 +1,164 @@
+stages:
+  - check_capabilities
+  - list_leases
+  - destroy_leases
+
+variables:
+  VAULT_ADDR: "${VAULT_ADDR}"
+  # LEASE_LIST_PATHS: "path1,path2"  # Optionnel: spécifier les paths séparés par des virgules
+  # DESTROY_ORPHANS_ONLY: "false"     # Optionnel: true pour détruire uniquement les orphelins
+  OUTPUT_FILE: "leases.json"
+
+# Stage 0: Vérification des capacités Vault (pre-script)
+check_vault_capabilities:
+  stage: check_capabilities
+  image: vault:latest
+  before_script:
+    - apk add --no-cache curl jq bash
+    - chmod +x scripts/check-capabilities.sh
+  script:
+    - |
+      echo "Vérification des capacités du token Vault..."
+      echo "Cette étape vérifie que le token a toutes les permissions nécessaires."
+      ./scripts/check-capabilities.sh
+  only:
+    - main
+    - master
+    - branches
+    - merge_requests
+    - schedules
+  when: on_success
+
+# Stage 1: Lister tous les leases Vault
+list_vault_leases:
+  stage: list_leases
+  image: vault:latest
+  needs:
+    - check_vault_capabilities
+  before_script:
+    - apk add --no-cache curl jq bash
+    - chmod +x scripts/list-lease.sh
+  script:
+    - |
+      echo "Liste des leases Vault..."
+      if [ -n "$LEASE_LIST_PATHS" ]; then
+        echo "Paths spécifiés: $LEASE_LIST_PATHS"
+      else
+        echo "Aucun path spécifié, liste de tous les leases"
+      fi
+      ./scripts/list-lease.sh
+    - |
+      echo "Vérification du fichier de sortie..."
+      if [ -f "$OUTPUT_FILE" ]; then
+        echo "Fichier créé avec succès"
+        cat "$OUTPUT_FILE" | jq '. | length' | xargs echo "Nombre de leases trouvés:"
+      else
+        echo "Erreur: Le fichier $OUTPUT_FILE n'a pas été créé"
+        exit 1
+      fi
+  artifacts:
+    paths:
+      - "$OUTPUT_FILE"
+    reports:
+      # Optionnel: créer un rapport JSON
+      dotenv: leases.env
+    expire_in: 1 hour
+  only:
+    - main
+    - master
+    - branches
+    - merge_requests
+    - schedules
+  # Permettre l'exécution manuelle pour ce job
+  when: on_success
+
+# Stage 2: Détruire les leases
+destroy_vault_leases:
+  stage: destroy_leases
+  image: vault:latest
+  needs:
+    - check_vault_capabilities
+    - list_vault_leases
+  dependencies:
+    - list_vault_leases
+  before_script:
+    - apk add --no-cache curl jq bash
+    - chmod +x scripts/destroy-lease.sh
+  script:
+    - |
+      echo "Destruction des leases Vault..."
+      if [ "$DESTROY_ORPHANS_ONLY" = "true" ]; then
+        echo "Mode: Destruction uniquement des leases orphelins"
+      else
+        echo "Mode: Destruction de tous les leases"
+      fi
+      
+      if [ ! -f "$OUTPUT_FILE" ]; then
+        echo "Erreur: Le fichier $OUTPUT_FILE n'existe pas"
+        exit 1
+      fi
+      
+      # Afficher un résumé avant destruction
+      total=$(jq '. | length' "$OUTPUT_FILE")
+      orphans=$(jq '[.[] | select(.orphan == true)] | length' "$OUTPUT_FILE")
+      echo "Total de leases dans le fichier: $total"
+      echo "Total de leases orphelins: $orphans"
+      
+      ./scripts/destroy-lease.sh
+  needs:
+    - job: list_vault_leases
+      artifacts: true
+  only:
+    - main
+    - master
+    - branches
+    - merge_requests
+    - schedules
+  # Par défaut manuel pour plus de sécurité - décommenter "when: on_success" pour automatiser
+  when: manual
+  # when: on_success  # Décommenter pour automatiser la destruction
+
+# Job optionnel: Détruire uniquement les leases orphelins
+destroy_orphan_leases:
+  stage: destroy_leases
+  image: vault:latest
+  variables:
+    DESTROY_ORPHANS_ONLY: "true"
+  needs:
+    - check_vault_capabilities
+    - list_vault_leases
+  dependencies:
+    - list_vault_leases
+  before_script:
+    - apk add --no-cache curl jq bash
+    - chmod +x scripts/destroy-lease.sh
+  script:
+    - |
+      echo "Destruction uniquement des leases orphelins..."
+      if [ ! -f "$OUTPUT_FILE" ]; then
+        echo "Erreur: Le fichier $OUTPUT_FILE n'existe pas"
+        exit 1
+      fi
+      
+      # Compter les orphelins
+      orphans=$(jq '[.[] | select(.orphan == true)] | length' "$OUTPUT_FILE")
+      echo "Nombre de leases orphelins à détruire: $orphans"
+      
+      if [ "$orphans" -eq 0 ]; then
+        echo "Aucun lease orphelin à détruire"
+        exit 0
+      fi
+      
+      ./scripts/destroy-lease.sh
+  needs:
+    - job: list_vault_leases
+      artifacts: true
+  only:
+    - main
+    - master
+    - branches
+    - merge_requests
+    - schedules
+  # Par défaut manuel pour plus de sécurité
+  when: manual
+
